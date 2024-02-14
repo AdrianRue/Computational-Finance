@@ -3,57 +3,56 @@ import matplotlib.pyplot as plt
 
 def buildTree(S, vol, T, N):
     dt = T / N
-    matrix = np.zeros((N + 1 , N + 1))
-    matrix[0,0] = S
-    u = np.exp(sigma*np.sqrt(dt))
-    d = np.exp(-sigma*np.sqrt(dt))
-    # Iterate over the lower triangle
-
-    for i in np.arange(N + 1 ): # iiterate over rows
-        for j in np.arange(i + 1 ): # iterate overs columns
-            # Hint : express each cell as a combination of up
-            # and down moves
-            matrix[i, j] = S*u**(j)*d**(i-j)
+    matrix = np.zeros((N + 1, N + 1))
+    matrix[0, 0] = S
+    u = np.exp(vol * np.sqrt(dt))
+    d = np.exp(-vol * np.sqrt(dt))
+    
+    for i in np.arange(N + 1):
+        for j in np.arange(i + 1):
+            matrix[i, j] = S * u**(j) * d**(i - j)
     return matrix
-        
-# sigma = 0.1
-# S = 80
-# T = 1. 
-# N = 2
-# Tree = buildTree(S, sigma , T, 50)     
 
-
-def valueOptionMatrix(tree, T, r, K, vol ):
+def valueOptionMatrix(tree, T, r, K, vol):
     dt = T / N
-    u = np.exp(sigma*np.sqrt(dt))
-    d = np.exp(-sigma*np.sqrt(dt))
-    p = (np.exp(r*dt) - d)/ (u - d)
+    u = np.exp(vol * np.sqrt(dt))
+    d = np.exp(-vol * np.sqrt(dt))
+    p = (np.exp(r * dt) - d) / (u - d)
     columns = tree.shape[1]
     rows = tree.shape[0]
-    # Walk backward , we start in last row of the matrix
-    # Add the payoff function in the last row
-    for c in np.arange( columns ):
-        S = tree[rows - 1, c ] # value in the matrix
-        # Payoff function
-        tree[rows - 1, c ] = max(S - K, 0) # TODO
 
-    # For all other rows , we need to combine from previous rows
-    # We walk backwards , from the last row to the first row
-    for i in np.arange(rows - 1 )[ : : - 1 ]:
-        for j in np.arange( i + 1 ):
-            down = tree[i + 1, j ]
-            up = tree[i + 1, j + 1 ]
-            tree[i, j ] = np.exp(-r*dt)*(p*up-(1-p)*down) # TODO
+    # Print the original tree for reference
+    print(tree)
+
+    # Walk backward, add the payoff function in the last row
+    for c in np.arange(columns):
+        S = tree[rows - 1, c]
+        tree[rows - 1, c] = max(S - K, 0)
+
+    # For all other rows, combine from previous rows
+    for i in np.arange(rows - 1)[::-1]:
+        for j in np.arange(i + 1):
+            down = tree[i + 1, j]
+            up = tree[i + 1, j + 1]
+            tree[i, j] = np.exp(-r * dt) * (p * up + (1 - p) * down)
+
     return tree
 
-sigma = 0.1
+# Parameters
+sigma = 0.2
 S = 80
 T = 1.
-N = 50
+N = 5
 K = 85
 r = 0.1
-tree = buildTree(S , sigma , T, N)
+
+# Build the binomial tree
+tree = buildTree(S, sigma, T, N)
+
+# Calculate the option price using the tree
 optionPrice = valueOptionMatrix(tree, T, r, K, sigma)
+
+# Print the final option prices
 print(optionPrice)
 # # Play around with different ranges of N and stepsizes.
 
