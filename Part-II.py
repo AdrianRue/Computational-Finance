@@ -1,5 +1,6 @@
 import numpy as np 
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
 def buildTree(S, vol, T, N):
     dt = T / N
@@ -13,7 +14,7 @@ def buildTree(S, vol, T, N):
             matrix[i, j] = S * u**(j) * d**(i - j)
     return matrix
 
-def valueOptionMatrix(tree, T, r, K, vol):
+def valueOptionMatrix(tree, T, r, K, vol, N):
     dt = T / N
     u = np.exp(vol * np.sqrt(dt))
     d = np.exp(-vol * np.sqrt(dt))
@@ -50,19 +51,35 @@ r = 0.1
 tree = buildTree(S, sigma, T, N)
 
 # Calculate the option price using the tree
-optionPrice = valueOptionMatrix(tree, T, r, K, sigma)
+optionPrice = valueOptionMatrix(tree, T, r, K, sigma, N)
 
 # Print the final option prices
 print(optionPrice)
 # # Play around with different ranges of N and stepsizes.
 
-# N = np.arange(1 , 300)
-# # calculate the option price for the coorect parameters
-# optionPriceAnalytical = 0 # TODO 
-# # calculate the option price for each n in N
-# for n in N:
-#     treeN = buildTree() # TODO
-#     priceApproximatedly = valueOption() # TODO
+def black_scholes_call(S, K, T, r, sigma):
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
 
-# # use matplotlib to plot the analytical value
-# # and the approximated value for each n
+    call_price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    return call_price
+
+N = np.arange(1 , 300)
+# calculate the option price for the coorect parameters
+optionPriceAnalytical = black_scholes_call(S, K, T, r, sigma) 
+# calculate the option price for each n in N
+f0s = []
+for n in N:
+    treeN = buildTree(S, sigma, T, n) # TODO
+    priceApproximatedly = valueOptionMatrix(treeN, T,r,K,sigma, n)
+    f0s.append(priceApproximatedly[0,0])
+
+
+plt.plot(N, f0s, label='Approximated')
+plt.plot(N, optionPriceAnalytical*np.ones(len(N)), label='Analytical')
+plt.xlabel('N')
+plt.ylabel('Option Price')
+plt.legend()
+plt.show()
+# use matplotlib to plot the analytical value
+# and the approximated value for each n
