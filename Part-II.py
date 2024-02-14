@@ -1,6 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from timer import Timer
 
 def buildTree(S, vol, T, N):
     dt = T / N
@@ -23,7 +24,7 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
     rows = tree.shape[0]
 
     # Print the original tree for reference
-    print(tree)
+    #print(tree)
 
     # Walk backward, add the payoff function in the last row
     for c in np.arange(columns):
@@ -41,11 +42,11 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
 
 # Parameters
 sigma = 0.2
-S = 80
+S = 100
 T = 1.
-N = 5
-K = 85
-r = 0.1
+N = 50
+K = 99
+r = 0.06
 
 # Build the binomial tree
 tree = buildTree(S, sigma, T, N)
@@ -69,10 +70,16 @@ N = np.arange(1 , 300)
 optionPriceAnalytical = black_scholes_call(S, K, T, r, sigma) 
 # calculate the option price for each n in N
 f0s = []
+time_run = []
 for n in N:
+    
+    t = Timer()
+    t.start()
     treeN = buildTree(S, sigma, T, n) # TODO
-    priceApproximatedly = valueOptionMatrix(treeN, T,r,K,sigma, n)
+    priceApproximatedly = valueOptionMatrix(treeN, T, r, K, sigma, n)
+    time_run.append(t.stop())
     f0s.append(priceApproximatedly[0,0])
+
 
 
 plt.plot(N, f0s, label='Approximated')
@@ -81,5 +88,12 @@ plt.xlabel('N')
 plt.ylabel('Option Price')
 plt.legend()
 plt.show()
+
 # use matplotlib to plot the analytical value
 # and the approximated value for each n
+
+plt.plot(N, time_run, '.')
+plt.plot(N, np.poly1d(np.polyfit(N, time_run, 2))(N))
+plt.xlabel('N')
+plt.ylabel('time of simulation')
+plt.show()
