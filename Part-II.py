@@ -3,18 +3,45 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 def buildTree(S, vol, T, N):
+    """Build a binomial tree for the stock price
+    
+    Arguments:
+    S -- initial stock price
+    vol -- volatility
+    T -- time to maturity
+    N -- number of steps
+    
+    Returns:
+    matrix -- a 2D numpy array representing the binomial tree
+    
+    """
     dt = T / N
     matrix = np.zeros((N + 1, N + 1))
     matrix[0, 0] = S
     u = np.exp(vol * np.sqrt(dt))
     d = np.exp(-vol * np.sqrt(dt))
     
+    # Fill the matrix
     for i in np.arange(N + 1):
         for j in np.arange(i + 1):
             matrix[i, j] = S * u**(j) * d**(i - j)
     return matrix
 
 def valueOptionMatrix(tree, T, r, K, vol, N):
+    """Calculate the option price using the binomial tree
+    
+    Arguments:
+    tree -- the binomial tree
+    T -- time to maturity
+    r -- risk-free rate
+    K -- strike price
+    vol -- volatility
+    N -- number of steps
+    
+    Returns:
+    tree -- a 2D numpy array representing the binomial tree with the option price
+    
+    """
     dt = T / N
     u = np.exp(vol * np.sqrt(dt))
     d = np.exp(-vol * np.sqrt(dt))
@@ -59,11 +86,27 @@ R = 0.1
 # # Play around with different ranges of N and stepsizes.
 
 def black_scholes_call(S, K, T, r, sigma):
+    """Calculate the price of a European call option using the Black-Scholes formula
+    
+    Arguments:
+    S -- initial stock price
+    K -- strike price
+    T -- time to maturity
+    r -- risk-free rate
+    sigma -- volatility
+    
+    Returns:
+    call_price -- the price of the call option
+    delta_0 -- the analytical hedge parameter
+
+    """
+
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
 
-    call_price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-    return call_price, norm.cdf(d1)
+    delta_0 = norm.cdf(d1)
+    call_price = S * delta_0 - K * np.exp(-r * T) * norm.cdf(d2)
+    return call_price, delta_0
 
 N = np.arange(1 , 300)
 # calculate the option price for the coorect parameters
@@ -84,8 +127,17 @@ f0s = []
 # plt.show()
 
 def hedge_param(tree, option_tree):
+    """Calculate the hedge parameter delta using the binomial tree
+    
+    Arguments:
+    tree -- the binomial tree
+    option_tree -- the binomial tree with the option price
+    
+    Returns:
+    delta -- the hedge parameter
+
+    """
     delta = (option_tree[1,1] - option_tree[1,0]) / (tree[1,1] - tree[1,0])
-    # print(option_tree[1,1], option_tree[1,0], tree[1,1], tree[1,0])
     return delta
 
 sigmas = np.arange(0.01, 0.99, 0.05)
