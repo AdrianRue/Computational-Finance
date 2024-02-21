@@ -67,6 +67,45 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
 
     return tree
 
+def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
+    """Calculate the American option price using the binomial tree
+    
+    Arguments:
+    tree -- the binomial tree
+    T -- time to maturity
+    r -- risk-free rate
+    K -- strike price
+    vol -- volatility
+    N -- number of steps
+    
+    Returns:
+    tree -- a 2D numpy array representing the binomial tree with the American option price
+    """
+    dt = T / N
+    u = np.exp(vol * np.sqrt(dt))
+    d = np.exp(-vol * np.sqrt(dt))
+    p = (np.exp(r * dt) - d) / (u - d)
+    columns = tree.shape[1]
+    rows = tree.shape[0]
+
+    for c in np.arange(columns):
+        S = tree[rows - 1, c]
+        tree[rows - 1, c] = max(S - K, 0)
+
+    # Walk backward, consider early exercise opportunities
+    for i in np.arange(rows - 1)[::-1]:
+        for j in np.arange(i + 1):
+            down = tree[i + 1, j]
+            up = tree[i + 1, j + 1]
+            immediate_exercise_payoff = max(tree[i, j] - K, 0)
+           
+            option_value = np.exp(-r * dt) * (p * up + (1 - p) * down)
+            print("Immediate ex: {}, opt val: {}".format(immediate_exercise_payoff, option_value))
+            tree[i, j] = max(immediate_exercise_payoff, option_value)
+
+    return tree
+    
+
 # Parameters
 sigma = 0.2
 S = 80
@@ -144,24 +183,43 @@ sigmas = np.arange(0.01, 0.99, 0.05)
 deltas = []
 deltas0 = []
 
-N=400
+N=200
 
-for sigma in sigmas:
-    tree_reference  = buildTree(S, sigma, T, N)
-    tree = np.copy(tree_reference)
-    option_tree = valueOptionMatrix(tree, T, R, K, sigma, N)
-    delta = hedge_param(tree_reference, option_tree)
-    delta0 = black_scholes_call(S, K, T, R, sigma)[1]
-    deltas0.append(delta0)
-    deltas.append(delta)
+# using European options
+# for sigma in sigmas:
+#     tree_reference  = buildTree(S, sigma, T, N)
+#     tree = np.copy(tree_reference)
+#     option_tree = valueOptionMatrix(tree, T, R, K, sigma, N)
+#     delta = hedge_param(tree_reference, option_tree)
+#     delta0 = black_scholes_call(S, K, T, R, sigma)[1]
+#     deltas0.append(delta0)
+#     deltas.append(delta)
+
+# using American options
+# for sigma in sigmas:
+#     tree_reference  = buildTree(S, sigma, T, N)
+#     tree = np.copy(tree_reference)
+#     option_tree = valueAmericanOptionMatrix(tree, T, R, K, sigma, N)
+#     delta = hedge_param(tree_reference, option_tree)
+#     delta0 = black_scholes_call(S, K, T, R, sigma)[1]
+#     deltas0.append(delta0)
+#     deltas.append(delta)
+
+
 
 # print(deltas)
-plt.plot(sigmas, deltas, label='Approximated')
-plt.plot(sigmas, deltas0, label='Analytical')
-plt.xlabel('Sigma')
-plt.ylabel('Delta')
-plt.legend()
-plt.show()
+# plt.plot(sigmas, deltas, label='Approximated')
+# plt.plot(sigmas, deltas0, label='Analytical')
+# plt.xlabel('Sigma')
+# plt.ylabel('Delta')
+# plt.legend()
+# plt.show()
+
+N = 5
+sigma =.8
+print(buildTree(S, sigma, T, N))
+print(valueOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
+print(valueAmericanOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
 
 # tree = np.array([1,2,3]) # tree = [1,2,3]
 # option_tree = valueOptionMatrix(tree) # tree = [1,4,3] option_tree = [1,4,3]
