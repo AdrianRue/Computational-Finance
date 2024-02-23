@@ -122,6 +122,7 @@ plt.show()
 # use matplotlib to plot the analytical value
 # and the approximated value for each n
 
+<<<<<<< Updated upstream
 plt.plot(N, time_run, '.')
 plt.plot(N, np.poly1d(np.polyfit(N, time_run, 2))(N))
 plt.xlabel('N')
@@ -155,3 +156,43 @@ for vol in sigma:
             print("Volatility", vol, "converges after", n, "time steps")
             break
 
+=======
+def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
+    """Calculate the American option price using the binomial tree
+    
+    Arguments:
+    tree -- the binomial tree
+    T -- time to maturity
+    r -- risk-free rate
+    K -- strike price
+    vol -- volatility
+    N -- number of steps
+    
+    Returns:
+    tree -- a 2D numpy array representing the binomial tree with the American option price
+    """
+    dt = T / N
+    u = np.exp(vol * np.sqrt(dt))
+    d = np.exp(-vol * np.sqrt(dt))
+    p = (np.exp(r * dt) - d) / (u - d)
+    columns = tree.shape[1]
+    rows = tree.shape[0]
+    reference = np.copy(tree)
+    option_value = np.zeros((rows, columns))
+    
+    for c in np.arange(columns):
+        S = tree[rows - 1, c]
+        tree[rows - 1, c] = max(K-S, 0)
+    # Walk backward, consider early exercise opportunities
+    for i in np.arange(rows - 1)[::-1]:
+        for j in np.arange(i + 1):
+            down = tree[i + 1, j]
+            up = tree[i + 1, j + 1]
+            immediate_exercise_payoff = max(K - reference[i, j], 0)
+           
+            option_value = np.exp(-r * dt) * (p * up + (1 - p) * down)
+            #print("Immediate ex: {}, opt val: {}, stock {}, Down: {}, UP: {}" .format(immediate_exercise_payoff, option_value, tree[i, j], down, up))
+            tree[i, j] = max(immediate_exercise_payoff, option_value)
+    return tree
+    
+>>>>>>> Stashed changes
