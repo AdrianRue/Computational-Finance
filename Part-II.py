@@ -55,7 +55,7 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
     # Walk backward, add the payoff function in the last row
     for c in np.arange(columns):
         S = tree[rows - 1, c]
-        tree[rows - 1, c] = max(S - K, 0)
+        tree[rows - 1, c] = max(K-S, 0)
 
     # For all other rows, combine from previous rows
     for i in np.arange(rows - 1)[::-1]:
@@ -87,20 +87,22 @@ def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
     p = (np.exp(r * dt) - d) / (u - d)
     columns = tree.shape[1]
     rows = tree.shape[0]
-
+    reference = np.copy(tree)
+    option_value = np.zeros((rows, columns))
+    
     for c in np.arange(columns):
         S = tree[rows - 1, c]
-        tree[rows - 1, c] = max(S - K, 0)
+        tree[rows - 1, c] = max(K-S, 0)
 
     # Walk backward, consider early exercise opportunities
     for i in np.arange(rows - 1)[::-1]:
         for j in np.arange(i + 1):
             down = tree[i + 1, j]
             up = tree[i + 1, j + 1]
-            immediate_exercise_payoff = max(tree[i, j] - K, 0)
+            immediate_exercise_payoff = max(K - reference[i, j], 0)
            
             option_value = np.exp(-r * dt) * (p * up + (1 - p) * down)
-            print("Immediate ex: {}, opt val: {}".format(immediate_exercise_payoff, option_value))
+            print("Immediate ex: {}, opt val: {}, stock {}, Down: {}, UP: {}" .format(immediate_exercise_payoff, option_value, tree[i, j], down, up))
             tree[i, j] = max(immediate_exercise_payoff, option_value)
 
     return tree
@@ -108,11 +110,11 @@ def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
 
 # Parameters
 sigma = 0.2
-S = 80
+S = 100
 T = 1.
 N = 5
-K = 85
-R = 0.1
+K = 99
+R = 0.06
 
 # # Build the binomial tree
 # tree = buildTree(S, sigma, T, N)
@@ -151,10 +153,10 @@ N = np.arange(1 , 300)
 # calculate the option price for the coorect parameters
 optionPriceAnalytical = black_scholes_call(S, K, T, R, sigma)[0] 
 # calculate the option price for each n in N
-f0s = []
+# f0s = []
 # for n in N:
 #     treeN = buildTree(S, sigma, T, n) 
-#     priceApproximatedly = valueOptionMatrix(treeN, T,r,K,sigma, n)
+#     priceApproximatedly = valueOptionMatrix(treeN, T,R,K,sigma, n)
 #     f0s.append(priceApproximatedly[0,0])
 
 
@@ -179,11 +181,11 @@ def hedge_param(tree, option_tree):
     delta = (option_tree[1,1] - option_tree[1,0]) / (tree[1,1] - tree[1,0])
     return delta
 
-sigmas = np.arange(0.01, 0.99, 0.05)
+sigmas = np.arange(0.02, 0.99, 0.05)
 deltas = []
 deltas0 = []
 
-N=200
+N=90
 
 # using European options
 # for sigma in sigmas:
@@ -216,10 +218,10 @@ N=200
 # plt.show()
 
 N = 5
-sigma =.8
+sigma =.2
 print(buildTree(S, sigma, T, N))
-print(valueOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
-print(valueAmericanOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
+print('EUROP', valueOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
+print('AMERICAN', valueAmericanOptionMatrix(buildTree(S, sigma, T, N), T, R, K, sigma, N))
 
 # tree = np.array([1,2,3]) # tree = [1,2,3]
 # option_tree = valueOptionMatrix(tree) # tree = [1,4,3] option_tree = [1,4,3]
