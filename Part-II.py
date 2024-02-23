@@ -1,6 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 from scipy.stats import norm
+from timer import Timer
 
 def buildTree(S, vol, T, N):
     dt = T / N
@@ -23,7 +24,7 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
     rows = tree.shape[0]
 
     # Print the original tree for reference
-    # print(tree)
+    #print(tree)
 
     # Walk backward, add the payoff function in the last row
     for c in np.arange(columns):
@@ -41,12 +42,12 @@ def valueOptionMatrix(tree, T, r, K, vol, N):
     return tree
 
 # Parameters
-sigma = 0.2
-S = 80
+sigma = 0.5
+S = 100
 T = 1.
 N = 5
 K = 85
-R = 0.1
+r = 0.1
 
 # # Build the binomial tree
 # tree = buildTree(S, sigma, T, N)
@@ -70,10 +71,17 @@ N = np.arange(1 , 300)
 optionPriceAnalytical = black_scholes_call(S, K, T, R, sigma)[0] 
 # calculate the option price for each n in N
 f0s = []
-# for n in N:
-#     treeN = buildTree(S, sigma, T, n) 
-#     priceApproximatedly = valueOptionMatrix(treeN, T,r,K,sigma, n)
-#     f0s.append(priceApproximatedly[0,0])
+time_run = []
+for n in N:
+    
+    t = Timer()
+    t.start()
+    treeN = buildTree(S, sigma, T, n) # TODO
+    priceApproximatedly = valueOptionMatrix(treeN, T, r, K, sigma, n)
+    time_run.append(t.stop())
+    f0s.append(priceApproximatedly[0,0])
+
+
 
 
 # plt.plot(N, f0s, label='Approximated')
@@ -111,16 +119,39 @@ plt.ylabel('Delta')
 plt.legend()
 plt.show()
 
-# tree = np.array([1,2,3]) # tree = [1,2,3]
-# option_tree = valueOptionMatrix(tree) # tree = [1,4,3] option_tree = [1,4,3]
-# valueOptionMatrix(tree):
-# tree[1] = 4
-# return tree
-# print("MANUALTREE", buildTree(S, 0.2, T, 5))
-# print("MANUALOPTTREE", valueOptionMatrix(buildTree(S, 0.2, T, 5), T, R, K, 0.2, 5))
-
-
-
-
 # use matplotlib to plot the analytical value
 # and the approximated value for each n
+
+plt.plot(N, time_run, '.')
+plt.plot(N, np.poly1d(np.polyfit(N, time_run, 2))(N))
+plt.xlabel('N')
+plt.ylabel('time of simulation')
+plt.show()
+
+S = 100
+T = 1.
+N = np.arange(1 , 300)
+K = 99
+r = 0.06
+sigma = np.arange(0.05, 0.5, 0.05)
+
+
+
+# Checking how many time steps it takes certain sigmas to converge
+for vol in sigma:
+
+
+    res_prev = 0
+
+    for n in N:
+
+        treeN = buildTree(S, vol, T, n)
+        priceApproximatedly = valueOptionMatrix(treeN, T, r, K, vol, n)
+        diff = (abs(priceApproximatedly[0,0] - res_prev)) / ((priceApproximatedly[0,0] + res_prev) / 2) * 100
+        res_prev = priceApproximatedly[0,0]
+
+        # If change in percentage is within 0.01%
+        if diff < 0.1:
+            print("Volatility", vol, "converges after", n, "time steps")
+            break
+
