@@ -61,15 +61,8 @@ def converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps):
 
     return mean_payoffs, i_s, error
 
-def convergence():
+def convergence(S0, K, T, r, sigma, dt, num_simulations):
 
-    S0 = 100
-    K = 99
-    T = 1
-    r = 0.06
-    sigma = 0.2
-    dt = 1 / 365
-    num_simulations = 5000
     num_steps = int(T / dt)
 
     payoffs = converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
@@ -78,7 +71,31 @@ def convergence():
     plt.errorbar(payoffs[1], payoffs[0], yerr = payoffs[2], fmt = '.')
     plt.show()
 
-convergence()
+#convergence(100, 99, 1, 0.06, 0.2, 1/365, 5000)
 
 
+def varying_K(S0, T, r, sigma, dt, num_simulations):
 
+    num_steps = int(T / dt)
+
+    for K in range(80, 110, 5):
+        payoffs = converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
+        plt.plot(payoffs[1], payoffs[0], label = f'{K}')
+        #plt.errorbar(payoffs[1], payoffs[0], yerr = payoffs[2], fmt = '.')
+    plt.legend()
+    plt.show()
+
+varying_K(100, 1, 0.06, 0.2, 1/365, 500)
+
+def varying_sigma(S0,K, T, r, dt, num_simulations):
+
+    num_steps = int(T / dt)
+        
+    for sigma in np.arange(0.05, 0.5, 0.05):
+        payoffs = converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
+        plt.plot(payoffs[1], payoffs[0], label = f'{sigma}')
+        #plt.errorbar(payoffs[1], payoffs[0], yerr = payoffs[2], fmt = '.')
+    plt.legend()
+    plt.show()
+
+varying_sigma(100,99, 1, 0.06, 1/365, 500)
