@@ -122,41 +122,6 @@ plt.show()
 # use matplotlib to plot the analytical value
 # and the approximated value for each n
 
-<<<<<<< Updated upstream
-plt.plot(N, time_run, '.')
-plt.plot(N, np.poly1d(np.polyfit(N, time_run, 2))(N))
-plt.xlabel('N')
-plt.ylabel('time of simulation')
-plt.show()
-
-S = 100
-T = 1.
-N = np.arange(1 , 300)
-K = 99
-r = 0.06
-sigma = np.arange(0.05, 0.5, 0.05)
-
-
-
-# Checking how many time steps it takes certain sigmas to converge
-for vol in sigma:
-
-
-    res_prev = 0
-
-    for n in N:
-
-        treeN = buildTree(S, vol, T, n)
-        priceApproximatedly = valueOptionMatrix(treeN, T, r, K, vol, n)
-        diff = (abs(priceApproximatedly[0,0] - res_prev)) / ((priceApproximatedly[0,0] + res_prev) / 2) * 100
-        res_prev = priceApproximatedly[0,0]
-
-        # If change in percentage is within 0.01%
-        if diff < 0.1:
-            print("Volatility", vol, "converges after", n, "time steps")
-            break
-
-=======
 def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
     """Calculate the American option price using the binomial tree
     
@@ -195,4 +160,3 @@ def valueAmericanOptionMatrix(tree, T, r, K, vol, N):
             tree[i, j] = max(immediate_exercise_payoff, option_value)
     return tree
     
->>>>>>> Stashed changes
