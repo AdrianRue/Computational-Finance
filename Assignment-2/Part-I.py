@@ -36,7 +36,7 @@ def run_simulation():
 
     payoff = average_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
     option_price = np.exp(-r * T) * payoff
-    #print(option_price)
+    return option_price
 
 #print(run_simulation())
 
