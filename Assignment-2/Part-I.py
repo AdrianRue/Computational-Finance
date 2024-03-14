@@ -38,13 +38,14 @@ def run_simulation():
     option_price = np.exp(-r * T) * payoff
     return option_price
 
-#print(run_simulation())
+print(run_simulation())
 
 def converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps):
 
     payoffs = []
 
     mean_payoffs = []
+    option_prices = []
     i_s = []
     error = []
     for i in range(num_simulations):
@@ -57,9 +58,10 @@ def converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps):
         mean_payoffs.append(np.mean(payoffs))
         i_s.append(i+1)
         error.append(float(np.var(mean_payoffs)) / float(math.sqrt(i+1)))
+        option_prices.append(np.mean(payoffs) * np.exp(-r * T))
 
 
-    return mean_payoffs, i_s, error
+    return option_prices, i_s, error
 
 def convergence(S0, K, T, r, sigma, dt, num_simulations):
 
@@ -69,11 +71,11 @@ def convergence(S0, K, T, r, sigma, dt, num_simulations):
     option_price = np.asarray(payoffs[0])
     steps = np.asarray(payoffs[1])
     error = np.asarray(payoffs[2])
-    print(option_price[-1])
     plt.plot(steps, option_price)
-    #plt.errorbar(steps, option_price, yerr = error, fmt = '.')
     plt.fill_between(steps, option_price-error, option_price+error,alpha=1, facecolor='r')
     plt.ylim(bottom=0)
+    plt.xlabel('No. of simulations')
+    plt.ylabel('Put option price')
     plt.show()
 
 convergence(100, 99, 1, 0.06, 0.2, 1/365, 500)
@@ -83,18 +85,17 @@ def varying_K(S0, T, r, sigma, dt, num_simulations):
 
     num_steps = int(T / dt)
 
-    for K in range(80, 110, 5):
+    for K in range(80, 115, 5):
         payoffs = converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
-        #plt.plot(payoffs[1], payoffs[0], label = f'{K}')
-        #plt.errorbar(payoffs[1], payoffs[0], yerr = payoffs[2], fmt = '.')
         option_price = np.asarray(payoffs[0])
         steps = np.asarray(payoffs[1])
         error = np.asarray(payoffs[2])
-        plt.plot(steps, option_price, label = f'{K}')
-         #plt.errorbar(steps, option_price, yerr = error, fmt = '.')
+        plt.plot(steps, option_price, label = f'€{K}')
         plt.fill_between(steps, option_price-error, option_price+error,alpha=0.5)
     plt.ylim(bottom=0)
-    plt.legend()
+    plt.legend(title = 'Strike price')
+    plt.xlabel('No. of simulations')
+    plt.ylabel('Put option price')
     plt.show()
 
 varying_K(100, 1, 0.06, 0.2, 1/365, 500)
@@ -105,16 +106,16 @@ def varying_sigma(S0,K, T, r, dt, num_simulations):
         
     for sigma in np.arange(0.1, 0.6, 0.1):
         payoffs = converge_payoff(S0, K, T, r, sigma, dt, num_simulations, num_steps)
-        #plt.plot(payoffs[1], payoffs[0], label = f'{sigma}')
-        #plt.errorbar(payoffs[1], payoffs[0], yerr = payoffs[2], fmt = '.')
+
         option_price = np.asarray(payoffs[0])
         steps = np.asarray(payoffs[1])
         error = np.asarray(payoffs[2])
-        plt.plot(steps, option_price, label = f'{sigma}')
-         #plt.errorbar(steps, option_price, yerr = error, fmt = '.')
+        plt.plot(steps, option_price, label = '{:.1f}%'.format(sigma))
         plt.fill_between(steps, option_price-error, option_price+error,alpha=0.5)
     plt.ylim(bottom=0)
-    plt.legend()
+    plt.legend(title = 'Volatility')
+    plt.xlabel('No. of simulations')
+    plt.ylabel('Put option price')
     plt.show()
 
 varying_sigma(100,99, 1, 0.06, 1/365, 500)
