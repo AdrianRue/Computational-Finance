@@ -42,7 +42,7 @@ print('Analytical price:', analytical_price)
 print('Monte Carlo price:', MC_price)
 
 # Plotting
-num_simulations = np.arange(1000, 10000, 2000)
+num_simulations = np.arange(1000, 20000, 2000)
 MC_prices = [MonteCarlo_asian_option_price(S0, K, T, r, sigma, n, num) for num in num_simulations]
 
 
