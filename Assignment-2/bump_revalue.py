@@ -53,7 +53,7 @@ def estimate_delta_diff(S0, K, T, r, sigma, iterations, bump_size):
 # Define parameters
 S0s = np.linspace(80, 120, 100)
 bump_size = 0.1
-K = 100
+K = 99
 T = 1
 r = 0.05
 sigma = 0.2
