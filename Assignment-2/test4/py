@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+def MC_asian_option(S0, K, sigma, r, T, N, m):
+    dt = T/m
+    sum = 0
+    sums = []
+    for i in range(N):
+        A = [S0]
+        for j in range(m):
+            dW = np.random.normal(0, 1)
+            A.append(A[-1] * np.exp((r - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * dW))
+        sum += np.maximum(np.sum(A)/(m+1) - K, 0)
+        sums.append(sum)
+
+    return np.exp(-r * T) * sum / N, np.std(sums)
+
+def analytical_asian_option_price_geometric(S0, K, T, r, sigma, n):
+    sigma_hat = sigma * np.sqrt((2 * n + 1)  / (6 * (n + 1)))
+    r_hat = ((r - 0.5 * sigma**2) + sigma_hat**2) * 0.5
+    d1 = (np.log(S0 / K) + (r_hat + 0.5 * sigma_hat**2) * T) / (sigma_hat * np.sqrt(T))
+    d2 = (np.log(S0 / K) + (r_hat - 0.5 * sigma_hat**2) * T) / (sigma_hat * np.sqrt(T))
+    return np.exp(-r * T) * (S0 * np.exp(r_hat * T) * norm.cdf(d1) - K * norm.cdf(d2))
+
+# parameters
+S0 = 100
+K = 100
+sigma = 0.2
+r = 0.05
+T = 1
+n = 1000
+m = 100
+
+MC_prices = []
+N = []
+stds = []
+for n in range(10000, 100000, 10000):
+    MC_price, std = MC_asian_option(S0, K, sigma, r, T, n, m) 
+    MC_prices.append(MC_price)
+    stds.append(std)
+    N.append(n)
+
+analytical_price = analytical_asian_option_price_geometric(S0, K, T, r, sigma, n)
+
+plt.plot(N, MC_prices, label='MC prices')
+plt.errorbar(N, MC_prices, yerr=stds, fmt='o')
+plt.axhline(y=analytical_price, color='r', linestyle='-', label='Analytical price')
+plt.xlabel('Number of simulations')
+plt.ylabel('Option price')
+plt.title('Asian option price')
+plt.legend()
+plt.show()
+
